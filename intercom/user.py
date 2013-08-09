@@ -49,7 +49,7 @@ class User(UserId):
 
     attributes = (
         'user_id', 'email', 'name', 'created_at', 'custom_data',
-        'last_seen_ip', 'last_seen_user_agent')
+        'last_seen_ip', 'last_seen_user_agent', 'companies')
 
     @classmethod
     def find(cls, user_id=None, email=None):
@@ -101,7 +101,8 @@ class User(UserId):
     @classmethod
     def create(
             cls, user_id=None, email=None, name=None, created_at=None,
-            custom_data=None, last_seen_ip=None, last_seen_user_agent=None):
+            custom_data=None, last_seen_ip=None, last_seen_user_agent=None,
+            companies=None):
         """ Create or update a user.
 
         >>> user = User.create(email="somebody@example.com")
@@ -112,7 +113,7 @@ class User(UserId):
         resp = Intercom.create_user(
             user_id=user_id, email=email, name=name, created_at=created_at,
             custom_data=custom_data, last_seen_ip=last_seen_ip,
-            last_seen_user_agent=last_seen_user_agent)
+            last_seen_user_agent=last_seen_user_agent, companies=companies)
         return cls(resp)
 
     @classmethod
@@ -159,6 +160,7 @@ class User(UserId):
             value = dict.get(self, key)
             if value:
                 attrs[key] = value
+        print attrs
         resp = Intercom.update_user(**attrs)
         self.update(resp)
 
@@ -264,24 +266,21 @@ class User(UserId):
 
     @property
     def companies(self):
-        """ Returns a Company object for this User.
-
-        Since the API currently does not return companies in the response,
-        this raises NotImplementedError
-        """
-        raise NotImplementedError
+        """ Get the companies of a user """
+        raise AttributeError("companies is a write-only property")
 
     @companies.setter
     def companies(self, companies):
-        """ Sets the CustomData for this User.
+        """ Sets the companies for the user
 
         >>> user = User(email="somebody@example.com")
         >>> user.companies = [{'id': 6, 'name': 'Intercom', 'created_at': 103201}]
         """
-        if not isinstance(companies, Companies):
-            companies = Companies(companies)
-        self['companies'] = companies
-
+        #Ensure a companies is set as a list.
+        if isinstance(companies, list):
+            self['companies'] = [Company(**c) for c in companies]
+        else:
+            raise ValueError("companies must be set as a list")
 
     @property
     def custom_data(self):
@@ -307,7 +306,7 @@ class User(UserId):
 
         >>> user = User(email="somebody@example.com")
         >>> user.custom_data = { 'max_monthly_spend': 200 }
-        >>> type(custom_data)
+        >>> type(user.custom_data)
         <class 'intercom.user.CustomData'>
         >>> user.save()
         >>> len(user.custom_data)
@@ -327,15 +326,14 @@ class Company(dict):
     """ Object represents an Intercom Company """
 
     @property
-    def company_id(self):
-        """ Returns the company_id. """
-        return dict.get(self, 'company_id', None)
+    def id(self):
+        """ Returns the company's id. """
+        return dict.get(self, 'id', None)
 
-    @company_id.setter
-    def company_id(self, company_id):
-        """ Sets the company_id. """
-        self['company_id'] = company_id
-
+    @id.setter
+    def id(self, company_id):
+        """ Sets thecompany's id. """
+        self['id'] = company_id
 
     @property
     def name(self):
@@ -358,15 +356,6 @@ class Company(dict):
     def created_at(self, value):
         """ Sets the timestamp when this Company was created. """
         self['created_at'] = value
-
-
-class Companies(list):
-    """ A list that only
-
-    >>> from intercom.user import Companies
-    >>>
-
-    """
 
 
 class CustomData(dict):

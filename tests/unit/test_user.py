@@ -19,6 +19,7 @@ from intercom.user import CustomData
 from intercom.user import LocationData
 from intercom.user import SocialProfile
 from intercom.user import User
+from intercom.user import Company
 
 class CustomDataTest(TestCase):
     """ Test the CustomData object. """
@@ -97,6 +98,20 @@ class SocialProfileTest(TestCase):
         social_profile = SocialProfile()
         social_profile['type'] = 'facebook'
 
+class CompanyTest(TestCase):
+    """ Test the Company object. """
+
+    def test_properties(self):
+        c_dict = {
+            'id': 1,
+            'name': 'Intercom',
+            'created_at': 1331764344
+        }
+        company = Company(c_dict)
+        self.assertEqual(1, company.id)
+        self.assertEqual('Intercom', company.name)
+        self.assertEqual(datetime.fromtimestamp(1331764344), company.created_at)
+
 class UsersTest(TestCase):
 
     @patch('requests.request', create_response(200, 'create_user_valid.json'))
@@ -132,10 +147,10 @@ class UsersTest(TestCase):
         self.assertEqual('Mozilla/5.0', user.last_seen_user_agent)
         self.assertEqual(50, user.relationship_score)
         self.assertTrue(isinstance(user.last_impression_at, datetime))
-        self.assertEqual(1331834352, 
+        self.assertEqual(1331834352,
                 time.mktime(user.last_impression_at.timetuple()))
         self.assertTrue(isinstance(user.created_at, datetime))
-        self.assertEqual(1331764344, 
+        self.assertEqual(1331764344,
                 time.mktime(user.created_at.timetuple()))
         self.assertTrue(1, len(user.social_profiles))
         profile = user.social_profiles[0]
@@ -148,6 +163,9 @@ class UsersTest(TestCase):
         self.assertEqual('Santiago', user.location_data.city_name)
         self.assertTrue(isinstance(user.location_data, LocationData))
         self.assertEqual('johnny', user.custom_data['nick'])
+        with self.assertRaises(AttributeError):
+            user.companies
+
 
     @patch('requests.request', create_response(200, 'get_user_id_valid.json'))
     def test_find_by_user_id(self):
@@ -180,22 +198,27 @@ class UsersTest(TestCase):
         user.last_seen_user_agent = 'Mozilla/5.0'
         user.created_at = datetime.fromtimestamp(1331764344)
         user.custom_data = { 'name': 'Ace' }
-
-        try:
+        user.companies = [{
+            'id':1,
+            'name':'Intercom',
+            'created_at': datetime.fromtimestamp(1331764344)}]
+        with self.assertRaises(AttributeError):
             # cannot set the relationship score
             user.relationship_score = 50
-        except AttributeError:
-            pass
 
         self.assertEqual('xxx@example.com', user.email)
         self.assertEqual(1234, user.user_id)
         self.assertEqual('Joe', user.name)
         self.assertEqual('192.168.1.100', user.last_seen_ip)
         self.assertEqual('Mozilla/5.0', user.last_seen_user_agent)
+        with self.assertRaises(AttributeError):
+            # cannot read the companies
+            user.companies
         self.assertEqual(None, user.relationship_score)
-        self.assertEqual(1331764344, 
+        self.assertEqual(1331764344,
                 time.mktime(user.created_at.timetuple()))
         self.assertEqual('Ace', user.custom_data['name'])
+
 
 class LocationDataTest(TestCase):
 

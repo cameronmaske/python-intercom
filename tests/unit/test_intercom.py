@@ -47,8 +47,13 @@ class IntercomUsersTest(TestCase):
 
     @patch('requests.request', create_response(200, 'update_user_valid.json'))
     def test_update_user_valid(self):
+        companies = [{
+            'id':1,
+            'name':'Intercom',
+            'created_at': 1331764344}]
+
         resp = Intercom.update_user(
-                email='xxx@example.com', custom_data={'age': '42'} )
+                email='xxx@example.com', custom_data={'age': '42'}, companies=companies)
         self.assertEqual(None, resp['user_id'])
         self.assertEqual('xxx@example.com', resp['email'])
         self.assertEqual('42', resp['custom_data']['age'])
