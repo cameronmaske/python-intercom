@@ -200,7 +200,7 @@ class Intercom(object):
             'user_id': user_id
         }
         user_dict = Intercom._call(
-            'DELETE', Intercom.api_endpoint + 'users', params)
+            'DELETE', Intercom.api_endpoint + 'users', params=params)
         return user_dict
 
     @classmethod
