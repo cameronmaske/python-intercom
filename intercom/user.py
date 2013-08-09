@@ -263,6 +263,27 @@ class User(UserId):
         return data
 
     @property
+    def companies(self):
+        """ Returns a Company object for this User.
+
+        Since the API currently does not return companies in the response,
+        this raises NotImplementedError
+        """
+        raise NotImplementedError
+
+    @companies.setter
+    def companies(self, companies):
+        """ Sets the CustomData for this User.
+
+        >>> user = User(email="somebody@example.com")
+        >>> user.companies = [{'id': 6, 'name': 'Intercom', 'created_at': 103201}]
+        """
+        if not isinstance(companies, Companies):
+            companies = Companies(companies)
+        self['companies'] = companies
+
+
+    @property
     def custom_data(self):
         """ Returns a CustomData object for this User.
 
@@ -300,6 +321,52 @@ class User(UserId):
         if not isinstance(custom_data, CustomData):
             custom_data = CustomData(custom_data)
         self['custom_data'] = custom_data
+
+
+class Company(dict):
+    """ Object represents an Intercom Company """
+
+    @property
+    def company_id(self):
+        """ Returns the company_id. """
+        return dict.get(self, 'company_id', None)
+
+    @company_id.setter
+    def company_id(self, company_id):
+        """ Sets the company_id. """
+        self['company_id'] = company_id
+
+
+    @property
+    def name(self):
+        """ Returns the company name e.g. Intercom. """
+        return dict.get(self, 'name', None)
+
+    @name.setter
+    def name(self, name):
+        """ Sets the company name. """
+        self['name'] = name
+
+    @property
+    @from_timestamp_property
+    def created_at(self):
+        """ Returns the datetime this Company was created. """
+        return dict.get(self, 'created_at', None)
+
+    @created_at.setter
+    @to_timestamp_property
+    def created_at(self, value):
+        """ Sets the timestamp when this Company was created. """
+        self['created_at'] = value
+
+
+class Companies(list):
+    """ A list that only
+
+    >>> from intercom.user import Companies
+    >>>
+
+    """
 
 
 class CustomData(dict):
