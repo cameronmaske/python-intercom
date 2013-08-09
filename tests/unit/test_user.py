@@ -200,8 +200,7 @@ class UsersTest(TestCase):
         user.custom_data = { 'name': 'Ace' }
         user.companies = [{
             'id':1,
-            'name':'Intercom',
-            'created_at': datetime.fromtimestamp(1331764344)}]
+            'name':'Intercom'}]
         with self.assertRaises(AttributeError):
             # cannot set the relationship score
             user.relationship_score = 50

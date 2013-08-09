@@ -160,7 +160,6 @@ class User(UserId):
             value = dict.get(self, key)
             if value:
                 attrs[key] = value
-        print attrs
         resp = Intercom.update_user(**attrs)
         self.update(resp)
 
@@ -281,6 +280,20 @@ class User(UserId):
             self['companies'] = [Company(**c) for c in companies]
         else:
             raise ValueError("companies must be set as a list")
+
+    @property
+    def company(self):
+        """ Get the company of a user """
+        raise AttributeError("company is a write-only property")
+
+    @company.setter
+    def company(self, company):
+        """ Sets the company for the user
+
+        >>> user = User(email="somebody@example.com")
+        >>> user.company = {'id': 6, 'name': 'Intercom', 'created_at': 103201}
+        """
+        self['companies'] = [Company(company)]
 
     @property
     def custom_data(self):
